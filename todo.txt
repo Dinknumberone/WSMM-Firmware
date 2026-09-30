@@ -1,0 +1,11 @@
+X otg disconnecting after a minute - seems to be to do with DTR or other one... maybe, only seems to happen in testing software sometimes, ignore for now unless it comes up in prod use case
+X firmware method to enter bootloader
+deej loosing connection after a short time to mixer (suspect otg is the reason, same as why it was disconnecting before)
+Xconfirm DFU flashing
+X   - esptool (prefered) (needs confirmation on external device)
+   - dfu util
+   - otg (last resort)
+
+add saving more variables to flashin
+   -PID values
+   -Alpha
