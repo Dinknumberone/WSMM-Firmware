@@ -16,7 +16,7 @@ TaskHandle_t sensorTask;
 TaskHandle_t randomGotoTask;
 
 
-const char* FW_VERSION = "0.1.3";
+const char* FW_VERSION = "0.1.4";
 
 
 mFader mainFader(13, 14, 17 /** 4 on breadboard, 3 on main */, 0, 256, -0.01, false);
@@ -55,8 +55,26 @@ void enterBootMode()
     // Does not return: it prepares USB, sets the ROM download flag, and restarts.
 }
 void serialCommandTask(void* pvParameters){
+
+    bool wasMounted = false;
     for(;;){
         vTaskDelay(50);
+
+        // USB watchdog: recover from a wedged CDC after PC sleep/wake.
+        // When Windows sleeps the USB bus is suspended. On wake the ESP32-S3
+        // native-USB/TinyUSB stack sometimes fails to re-enumerate, leaving
+        // tud_mounted() == false and the COM port dead (Device Manager error).
+        // Detect the mounted -> unmounted transition and force a full
+        // detach/re-attach so the host re-enumerates from scratch.
+        
+        bool isMounted = tud_mounted();
+        if (wasMounted && !isMounted) {
+            tud_disconnect();
+            vTaskDelay(pdMS_TO_TICKS(200));
+            tud_connect();
+            Serial.begin(115200);
+        }
+        wasMounted = isMounted;
 
         if (Serial.available() > 0){
             
